@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="application-version" content="1.0.0">
+  <title>Расписание — 4 курс, 7 семестр</title>
+  <style>
+    :root {
+      --ink: #173f42;
+      --muted: #5a7274;
+      --paper: #ffffff;
+      --wash: #eff6f5;
+      --line: #cfe0df;
+      --accent: #0098af;
+      --accent-soft: #e3f5f7;
+      --numerator: #b23a62;
+      --numerator-soft: #fae8ef;
+      --denominator: #355ca8;
+      --denominator-soft: #eaf0fb;
+      --both: #256569;
+      --both-soft: #e5efee;
+      --lecture: #6b4ea0;
+      --lecture-soft: #f0ebf8;
+      --seminar: #2e7d4f;
+      --seminar-soft: #e7f3eb;
+      --today: #006b80;
+      --today-soft: #dff1f3;
+      --shadow: 0 18px 45px rgba(37, 101, 105, .11);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--wash);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.45;
+    }
+
+    button { font: inherit; }
+
+    button:focus-visible {
+      outline: 3px solid rgba(0, 152, 175, .34);
+      outline-offset: 3px;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 72px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(28px, 5vw, 56px);
+      border-radius: 30px;
+      color: white;
+      background:
+        radial-gradient(circle at 88% 15%, rgba(255,255,255,.15) 0 10%, transparent 10.3%),
+        linear-gradient(135deg, #173f42 0%, #256569 58%, #0098af 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "VII";
+      position: absolute;
+      right: 3.5%;
+      bottom: -34px;
+      font: 700 clamp(110px, 20vw, 240px)/1 Georgia, serif;
+      color: rgba(255,255,255,.055);
+      letter-spacing: -.08em;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #c9eceb;
+      font: 700 12px/1.2 ui-monospace, Consolas, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font: 700 clamp(34px, 6vw, 67px)/.98 Georgia, "Times New Roman", serif;
+      letter-spacing: -.035em;
+    }
+
+    .hero-copy {
+      max-width: 690px;
+      margin: 20px 0 0;
+      color: #e0f2f1;
+      font-size: clamp(15px, 2vw, 18px);
+    }
+
+    .status-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .status-item {
+      min-height: 94px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      background: rgba(255,255,255,.09);
+      backdrop-filter: blur(8px);
+    }
+
+    .status-label {
+      display: block;
+      margin-bottom: 7px;
+      color: #c7e8e7;
+      font: 700 11px/1.2 ui-monospace, Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status-value { font-weight: 750; }
+
+    .status-detail {
+      display: block;
+      margin-top: 5px;
+      color: #d9eeee;
+      font-size: 13px;
+    }
+
+    .panel {
+      margin-top: 22px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 10px 32px rgba(37, 101, 105, .055);
+    }
+
+    .panel-title {
+      margin: 0 0 14px;
+      font: 700 18px/1.2 Georgia, serif;
+    }
+
+    .group-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .group-tab {
+      min-width: 0;
+      min-height: 74px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f8fbfa;
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .group-tab:hover { transform: translateY(-2px); border-color: #82afad; }
+    .group-tab[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+    .group-name { display: block; font-weight: 750; }
+    .group-code, .group-number { display: block; color: var(--muted); font-size: 12px; }
+
+    .week-navigation {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+      align-items: center;
+      gap: 14px;
+      margin-top: 22px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: 0 10px 32px rgba(37, 101, 105, .045);
+    }
+
+    .week-navigation button {
+      min-height: 46px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fbfa;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 750;
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .week-navigation button:first-child { justify-self: start; }
+    .week-navigation button:last-child { justify-self: end; }
+    .week-navigation button:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--accent); background: var(--accent-soft); }
+    .week-navigation button:disabled { cursor: not-allowed; opacity: .42; }
+
+    .week-navigation-current {
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      min-width: 230px;
+      text-align: center;
+    }
+
+    .week-navigation-current strong { font: 700 17px/1.2 Georgia, serif; }
+    .week-navigation-current span { color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .selected-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 34px 0 16px;
+    }
+
+    .selected-heading h2 { margin: 0; font: 700 clamp(25px, 4vw, 38px)/1.05 Georgia, serif; letter-spacing: -.02em; }
+    .selected-heading p { margin: 7px 0 0; color: var(--muted); }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .legend-chip, .week-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+    .legend-chip { padding: 6px 9px; }
+    .legend-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .is-numerator { color: var(--numerator); background: var(--numerator-soft); }
+    .is-denominator { color: var(--denominator); background: var(--denominator-soft); }
+    .is-both { color: var(--both); background: var(--both-soft); }
+
+    .schedule { display: grid; gap: 16px; }
+
+    .day-card {
+      display: grid;
+      grid-template-columns: 94px 1fr;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 9px 26px rgba(37, 101, 105, .045);
+    }
+
+    .day-card.is-today { border-color: var(--today); box-shadow: 0 0 0 3px var(--today-soft), 0 12px 32px rgba(37,101,105,.07); }
+
+    .day-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 14px;
+      background: var(--ink);
+      color: white;
+    }
+
+    .day-short {
+      font: 700 30px/1 Georgia, serif;
+      letter-spacing: .08em;
+    }
+
+    .day-date {
+      display: grid;
+      gap: 2px;
+      margin-top: auto;
+      color: #b9d8d6;
+      text-align: center;
+      font: 700 11px/1.1 ui-monospace, Consolas, monospace;
+      text-transform: uppercase;
+    }
+
+    .day-date strong { color: white; font-size: 18px; }
+
+    .day-body { min-width: 0; padding: 20px; }
+    .day-name { margin: 0 0 14px; font: 700 21px/1.15 Georgia, serif; }
+    .lesson-list { display: grid; gap: 10px; }
+
+    .pair-row {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .pair-time {
+      padding: 13px 12px;
+      border-radius: 13px;
+      background: #edf5f4;
+      color: var(--muted);
+      font: 700 12px/1.4 ui-monospace, Consolas, monospace;
+    }
+
+    .pair-time strong { display: block; color: var(--ink); font-size: 14px; }
+    .lesson-stack { display: grid; gap: 8px; }
+
+    .lesson {
+      position: relative;
+      overflow: hidden;
+      padding: 13px 14px 13px 17px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: white;
+    }
+
+    .lesson::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--both); }
+    .lesson[data-week="numerator"]::before { background: var(--numerator); }
+    .lesson[data-week="denominator"]::before { background: var(--denominator); }
+    .lesson-title { margin: 0; font-size: 15px; font-weight: 800; }
+    .lesson-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .lesson-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .lesson-meta .lesson-type {
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #edf2f1;
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      text-transform: lowercase;
+    }
+    .lesson-meta .lesson-type.is-lecture { color: var(--lecture); background: var(--lecture-soft); }
+    .lesson-meta .lesson-type.is-seminar { color: var(--seminar); background: var(--seminar-soft); }
+    .lesson-meta .lesson-teacher,
+    .lesson-meta .lesson-room {
+      width: fit-content;
+      padding: 3px 7px;
+      border-radius: 7px;
+    }
+    .lesson-meta .lesson-teacher { background: #eef4f4; }
+    .lesson-meta .lesson-room { background: #f5f1e8; }
+    .week-badge { margin-bottom: 7px; padding: 4px 7px; }
+    .lesson-note { margin: 8px 0 0; color: #7a5900; font-size: 12px; font-weight: 700; }
+
+    .empty-day {
+      padding: 18px;
+      border: 1px dashed #b9d3d1;
+      border-radius: 14px;
+      color: var(--muted);
+      background: #f7fbfa;
+    }
+
+    .footer { margin-top: 26px; color: var(--muted); text-align: center; font-size: 12px; }
+    .unofficial-notice {
+      max-width: 820px;
+      margin: 0 auto 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .72);
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .unofficial-notice a { color: var(--both); font-weight: 800; }
+    .footer-source { display: block; }
+    .footer-credit { display: block; margin-top: 8px; font-size: 9px; letter-spacing: .04em; opacity: .68; }
+
+    @media (max-width: 900px) {
+      .status-grid { grid-template-columns: 1fr; }
+      .group-tabs { display: flex; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+      .group-tab { flex: 0 0 210px; scroll-snap-align: start; }
+      .selected-heading { align-items: flex-start; flex-direction: column; }
+      .week-navigation { grid-template-columns: auto minmax(0, 1fr) auto; }
+      .week-navigation-current { min-width: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 20px, 1180px); padding-top: 10px; }
+      .hero { border-radius: 22px; }
+      .panel { padding: 17px; }
+      .week-navigation { gap: 8px; padding: 9px; }
+      .week-navigation button { width: 46px; padding: 8px; font-size: 20px; }
+      .week-nav-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      .week-navigation-current strong { font-size: 15px; }
+      .week-navigation-current span { font-size: 11px; }
+      .day-card { grid-template-columns: 58px minmax(0, 1fr); }
+      .day-rail { padding: 17px 10px; }
+      .day-short { font-size: 21px; }
+      .day-date strong { font-size: 16px; }
+      .day-body { padding: 15px 12px; }
+      .pair-row { grid-template-columns: 1fr; gap: 6px; }
+      .pair-time { display: flex; justify-content: space-between; padding: 8px 10px; }
+      .pair-time strong { display: inline; }
+      .lesson-meta { display: grid; gap: 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .group-tab { transition: none; }
+    }
+
+    @media print {
+      body { background: white; }
+      .shell { width: 100%; padding: 0; }
+      .hero { color: var(--ink); background: white; box-shadow: none; border: 1px solid var(--line); }
+      .hero-copy, .eyebrow, .status-label { color: var(--muted); }
+      .panel { box-shadow: none; }
+      .week-navigation { grid-template-columns: 1fr; box-shadow: none; }
+      .week-navigation button { display: none; }
+      .day-card { break-inside: avoid; box-shadow: none; }
+      .group-tabs { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">Смоленский филиал Финуниверситета · 2026/27</p>
+      <h1>Расписание</h1>
+      <p class="hero-copy">4 курс, 7 семестр, очная форма обучения.</p>
+      <div class="status-grid" aria-live="polite">
+        <div class="status-item"><span class="status-label">Сегодня</span><span class="status-value" id="todayValue">—</span></div>
+        <div class="status-item"><span class="status-label">Тип недели</span><span class="status-value" id="parityValue">—</span><span class="status-detail" id="weekRangeValue">—</span></div>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="directionTitle">
+      <h2 class="panel-title" id="directionTitle">Выберите направление</h2>
+      <div class="group-tabs" id="groupTabs"></div>
+    </section>
+
+    <nav class="week-navigation" aria-label="Навигация по неделям">
+      <button type="button" id="previousWeek" aria-label="Предыдущая неделя"><span aria-hidden="true">←</span> <span class="week-nav-text">Предыдущая</span></button>
+      <div class="week-navigation-current" aria-live="polite">
+        <strong id="weekNavigationRange">—</strong>
+        <span id="weekNavigationType">—</span>
+      </div>
+      <button type="button" id="nextWeek" aria-label="Следующая неделя"><span class="week-nav-text">Следующая</span> <span aria-hidden="true">→</span></button>
+    </nav>
+
+    <section aria-labelledby="selectedTitle">
+      <div class="selected-heading">
+        <div>
+          <h2 id="selectedTitle">—</h2>
+          <p id="selectedGroup">—</p>
+        </div>
+        <div class="legend" aria-label="Обозначения">
+          <span class="legend-chip is-numerator">Числитель</span>
+          <span class="legend-chip is-denominator">Знаменатель</span>
+          <span class="legend-chip is-both">Обе недели</span>
+        </div>
+      </div>
+      <div class="schedule" id="schedule"></div>
+    </section>
+
+    <footer class="footer">
+      <p class="unofficial-notice">Неофициальный добровольческий проект. Не является официальным ресурсом Финансового университета или его Смоленского филиала. При расхождениях руководствуйтесь информацией из официальных источников. <a href="DISCLAIMER.txt">Правовая информация</a></p>
+      <span class="footer-source">Источник: утверждённое расписание учебных занятий от 05.10.2026. Период: 12.10.2026–29.12.2026; для бизнес-информатики — до 15.12.2026.</span>
+      <span class="footer-credit">powered by NAmSEN · <span class="footer-version">v1.0.0</span></span>
+    </footer>
+  </main>
+
+  <script>
+    const DATA = {"meta":{"title":"Расписание учебных занятий — 4 курс, 7 семестр","startDate":"2026-10-12","endDate":"2026-12-29","businessInformaticsEndDate":"2026-12-15","parityConfirmed":true,"parityAnchorDate":"2026-10-12","parityAnchorType":"numerator","paritySource":"Распределение учебных занятий по числителю и знаменателю в Смоленском филиале Финуниверситета в 2026/2027 учебном году","sourceNote":"Согласно отдельному распределению недель, 12–18 октября 2026 года — числитель; далее числитель и знаменатель чередуются каждые семь дней."},"groups":[{"id":"economics","code":"38.03.01","name":"Экономика","group":"СМПС23-1Б-ФиБДО"},{"id":"bi-01","code":"38.03.05","name":"Бизнес-информатика","group":"СМПС23-1Б-БИ01"},{"id":"bi-02","code":"38.03.05","name":"Бизнес-информатика","group":"СМПС23-1Б-БИ02"},{"id":"management","code":"38.03.02","name":"Менеджмент","group":"СМПС23-1Б-МА01"},{"id":"law","code":"40.03.01","name":"Юриспруденция","group":"СМПС23-1Б-ЗП01"}],"days":[{"id":"monday","name":"Понедельник","lessons":[{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"лекция","teacher":"Морозов А.А., к.э.н., доцент","room":"239"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"economics","subject":"Трансфертное ценообразование в коммерческом банке","lessonType":"лекция","teacher":"Корольков Д.А., к.э.н., доцент","room":"241"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"семинар","teacher":"Морозов А.А., к.э.н., доцент","room":"239"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Трансфертное ценообразование в коммерческом банке","lessonType":"семинар","teacher":"Корольков Д.А., к.э.н., доцент","room":"217"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","teacher":"Тютюник А.А., к.т.н., доцент","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","teacher":"Тютюник А.А., к.т.н., доцент","room":"226"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"bi-01","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","teacher":"Тютюник А.А., к.т.н., доцент","room":"226"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"bi-02","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","teacher":"Тютюник А.А., к.т.н., доцент","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","teacher":"Пучкова В.В., к.ю.н., доцент","room":"203"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","teacher":"Пучкова В.В., к.ю.н., доцент","room":"203"}]},{"id":"tuesday","name":"Вторник","lessons":[{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","teacher":"Морозов А.А., к.э.н., доцент","room":"206"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"семинар","teacher":"Морозов А.А., к.э.н., доцент","room":"206"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"лекция","teacher":"Морозов А.А., к.э.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"economics","subject":"Банковские риски","lessonType":"семинар","teacher":"Ноздрева И.Е., к.э.н., доцент","room":"53"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-01","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","teacher":"Регер Т.В., к.п.н., доцент","room":"45"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-02","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","teacher":"Регер Т.В., к.п.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","teacher":"Регер Т.В., к.п.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","teacher":"Регер Т.В., к.п.н., доцент","room":"45"},{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"management","subject":"Цифровой маркетинг","lessonType":"семинар","teacher":"Матвеенкова Т.Н.","room":"203"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"management","subject":"Цифровой маркетинг","lessonType":"семинар","teacher":"Матвеенкова Т.Н.","room":"206"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"management","subject":"Продуктовый маркетинг","lessonType":"семинар","teacher":"Лапшова О.А., к.псх.н., доцент","room":"239"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"management","subject":"Нейромаркетинг","lessonType":"семинар","teacher":"Лапшова О.А.","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"лекция","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"203"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","teacher":"Пучкова В.В., к.ю.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Жилищное право","lessonType":"лекция","teacher":"Агапов Г.А., к.и.н., доцент","room":"54"}]},{"id":"wednesday","name":"Среда","lessons":[{"pair":1,"time":"09:10–10:40","week":"both","groupId":"economics","subject":"Финансы общественного сектора","lessonType":"лекция","teacher":"Филипов В.А., к.э.н., доцент","room":"45"},{"pair":2,"time":"11:00–12:30","week":"both","groupId":"economics","subject":"Финансы общественного сектора","lessonType":"семинар","teacher":"Филипов В.А., к.э.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"both","groupId":"economics","subject":"Управление финансовыми активами в банке","lessonType":"семинар","teacher":"Филипов В.А., к.э.н., доцент","room":"45"},{"pair":2,"time":"11:00–12:30","week":"both","groupId":"management","subject":"Продуктовый маркетинг","lessonType":"семинар","teacher":"Лапшова О.А., к.псх.н., доцент","room":"54"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"лекция","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"239"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Латеральный маркетинг","lessonType":"семинар","teacher":"Тарасова Е.В., к.э.н., доцент","room":"203","note":"02.12"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"203","note":"16.12"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"239"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"management","subject":"Латеральный маркетинг","lessonType":"семинар","teacher":"Тарасова Е.В., к.э.н., доцент","room":"239"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"management","subject":"Сенсорный маркетинг","lessonType":"семинар","teacher":"Щербакова С.А., к.г.н., доцент","room":"239","note":"21.10, 18.11"},{"pair":6,"time":"18:10–19:40","week":"denominator","groupId":"management","subject":"Сенсорный маркетинг","lessonType":"семинар","teacher":"Щербакова С.А., к.г.н., доцент","room":"239","note":"21.10"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"law","subject":"Банковское право","lessonType":"семинар","teacher":"Иванов А.М., к.и.н., доцент","room":"54"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Жилищное право","lessonType":"семинар","teacher":"Агапов Г.А., к.и.н., доцент","room":"53"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"law","subject":"Корпоративные споры и практика их разрешения","lessonType":"проектное обучение, семинар","teacher":"Науменков А.В., к.ю.н., доцент","room":"читальный зал"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Корпоративные споры и практика их разрешения","lessonType":"проектное обучение, лекция","teacher":"Науменков А.В., к.ю.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"law","subject":"Арбитражные управляющие в процедурах банкротства","lessonType":"семинар","teacher":"Науменков А.В., к.ю.н., доцент","room":"читальный зал"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Арбитражные управляющие в процедурах банкротства","lessonType":"лекция","teacher":"Науменков А.В., к.ю.н., доцент","room":"203"}]},{"id":"thursday","name":"Четверг","lessons":[{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-01","subject":"Технологии продвинутой аналитики","lessonType":"семинар","teacher":"Березняк И.С., к.ф.м.н., доцент","room":"45"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-02","subject":"Технологии продвинутой аналитики","lessonType":"семинар","teacher":"Березняк И.С., к.ф.м.н., доцент","room":"45"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"241"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"241"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"лекция","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"лекция","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-01","subject":"Информационные технологии управления рисками","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-02","subject":"Информационные технологии управления рисками","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"203"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Информационные технологии управления рисками","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"241"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Информационные технологии управления рисками","lessonType":"семинар","teacher":"Рысина Е.И., к.т.н., доцент","room":"241"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":null,"lessonType":null,"teacher":null,"room":"206","note":"В PDF указана только аудитория"},{"pair":5,"time":"16:30–18:00","week":"numerator","groupId":"management","subject":"Управление продажами","lessonType":"лекция","teacher":"Попова Ю.В.","room":"239"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"management","subject":"Управление продажами","lessonType":"лекция","teacher":"Попова Ю.В.","room":"53"},{"pair":6,"time":"18:10–19:40","week":"numerator","groupId":"management","subject":"Управление продажами","lessonType":"семинар","teacher":"Попова Ю.В.","room":"239"},{"pair":6,"time":"18:10–19:40","week":"denominator","groupId":"management","subject":"Управление продажами","lessonType":"семинар","teacher":"Попова Ю.В.","room":"53"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Ответственность руководителя корпорации","lessonType":"лекция","teacher":"Науменков А.В., к.ю.н., доцент","room":"206"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Банковское право","lessonType":"семинар","teacher":"Иванов А.М., к.и.н., доцент","room":"55"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"law","subject":"Ответственность руководителя корпорации","lessonType":"семинар","teacher":"Науменков А.В., к.ю.н., доцент","room":"53"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Инвестиционное право","lessonType":"семинар","teacher":"Иванов А.М., к.и.н., доцент","room":"55"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"law","subject":"Инвестиционное право","lessonType":"семинар","teacher":"Иванов А.М., к.и.н., доцент","room":"51"}]},{"id":"friday","name":"Пятница","lessons":[{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","teacher":"Морозов А.А., к.э.н., доцент","room":"206"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","teacher":"Морозов А.А., к.э.н., доцент","room":"206"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"economics","subject":"Банковские риски","lessonType":"лекция","teacher":"Ноздрева И.Е., к.э.н., доцент","room":"47"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"economics","subject":"Финансовые риски и банки","lessonType":"семинар","teacher":"Ноздрева И.Е., к.э.н., доцент","room":"47"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Прикладные задачи машинного обучения","lessonType":"лекция","teacher":"Бояринов Д.А., к.п.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Прикладные задачи машинного обучения","lessonType":"лекция","teacher":"Бояринов Д.А., к.п.н., доцент","room":"45"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-01","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"семинар","teacher":"Бояринов Д.А., к.п.н., доцент","room":"226"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-02","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"семинар","teacher":"Бояринов Д.А., к.п.н., доцент","room":"226"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-01","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"лекция","teacher":"Бояринов Д.А., к.п.н., доцент","room":"45"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-02","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"лекция","teacher":"Бояринов Д.А., к.п.н., доцент","room":"45"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Прикладные задачи машинного обучения","lessonType":"семинар","teacher":"Бояринов Д.А., к.п.н., доцент","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Прикладные задачи машинного обучения","lessonType":"семинар","teacher":"Бояринов Д.А., к.п.н., доцент","room":"226"},{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"лекция","teacher":"Фомичева Ю.А.","room":"203"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"семинар","teacher":"Фомичева Ю.А.","room":"239"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"семинар","teacher":"Фомичева Ю.А.","room":"203"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"239"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","teacher":"Лукьянова Н.Г., к.г.н., доцент","room":"239"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"law","subject":"Жилищное право","lessonType":"семинар","teacher":"Агапов Г.А., к.и.н., доцент","room":"217"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"law","subject":"Конкурентное право","lessonType":"семинар","teacher":"Агапов Г.А., к.и.н., доцент","room":"217"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Конкурентное право","lessonType":"лекция","teacher":"Агапов Г.А., к.и.н., доцент","room":"55"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Конкурентное право","lessonType":"семинар","teacher":"Агапов Г.А., к.и.н., доцент","room":"55"}]}]};
+    const state = { groupId: DATA.groups[0].id, viewedDate: new Date() };
+    const dayShort = { monday: "ПН", tuesday: "ВТ", wednesday: "СР", thursday: "ЧТ", friday: "ПТ" };
+    const weekLabels = { numerator: "Числитель", denominator: "Знаменатель", both: "Обе недели" };
+
+    function parseLocalDate(value) {
+      const parts = value.split("-").map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    function atMidnight(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function formatShortDate(date) {
+      return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(date);
+    }
+
+    function getCurrentMonday(date) {
+      const current = atMidnight(date);
+      const offset = (current.getDay() + 6) % 7;
+      current.setDate(current.getDate() - offset);
+      return current;
+    }
+
+    function getDayDateParts(date) {
+      const parts = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" }).formatToParts(date);
+      const day = parts.find(function (part) { return part.type === "day"; }).value;
+      const month = parts.find(function (part) { return part.type === "month"; }).value.replace(".", "");
+      return { day: day, month: month };
+    }
+
+    function getGroupScheduleEnd(groupId) {
+      const endValue = groupId.startsWith("bi-") ? DATA.meta.businessInformaticsEndDate : DATA.meta.endDate;
+      return parseLocalDate(endValue);
+    }
+
+    function getViewBounds(groupId) {
+      return {
+        first: getCurrentMonday(parseLocalDate(DATA.meta.startDate)),
+        last: getCurrentMonday(getGroupScheduleEnd(groupId))
+      };
+    }
+
+    function clampViewedDate(date, groupId) {
+      const monday = getCurrentMonday(date);
+      const bounds = getViewBounds(groupId);
+      if (monday < bounds.first) return bounds.first;
+      if (monday > bounds.last) return bounds.last;
+      return monday;
+    }
+
+    function getScheduleState(date, groupId) {
+      const current = atMidnight(date);
+      const start = parseLocalDate(DATA.meta.startDate);
+      const parityAnchor = parseLocalDate(DATA.meta.parityAnchorDate);
+      const end = getGroupScheduleEnd(groupId);
+      const formatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", weekday: "long" });
+      if (current < start) return { label: formatter.format(current), week: "Ещё не началось", parity: "Не применяется", weekType: null, range: "Расписание начнётся 12 октября" };
+      if (current > end) return { label: formatter.format(current), week: "Период завершён", parity: "Не применяется", weekType: null, range: "Расписание завершено" };
+      const dayMs = 24 * 60 * 60 * 1000;
+      const week = Math.floor((current - start) / (7 * dayMs)) + 1;
+      const parityWeek = Math.floor((current - parityAnchor) / (7 * dayMs));
+      const weekType = Math.abs(parityWeek % 2) === 0 ? "numerator" : "denominator";
+      const weekStart = new Date(parityAnchor.getTime() + parityWeek * 7 * dayMs);
+      const naturalWeekEnd = new Date(weekStart.getTime() + 6 * dayMs);
+      const displayedWeekEnd = naturalWeekEnd > end ? end : naturalWeekEnd;
+      const range = formatShortDate(weekStart) + " — " + formatShortDate(displayedWeekEnd);
+      return {
+        label: formatter.format(current),
+        week: week + "-я учебная неделя",
+        parity: weekLabels[weekType],
+        weekType: weekType,
+        range: range
+      };
+    }
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function renderStatus() {
+      const todayInfo = getScheduleState(new Date(), state.groupId);
+      const viewedInfo = getScheduleState(state.viewedDate, state.groupId);
+      document.getElementById("todayValue").textContent = todayInfo.label;
+      document.getElementById("parityValue").textContent = viewedInfo.parity;
+      document.getElementById("weekRangeValue").textContent = viewedInfo.range;
+    }
+
+    function renderWeekNavigation() {
+      const viewedInfo = getScheduleState(state.viewedDate, state.groupId);
+      const bounds = getViewBounds(state.groupId);
+      document.getElementById("weekNavigationRange").textContent = viewedInfo.range;
+      document.getElementById("weekNavigationType").textContent = viewedInfo.parity;
+      document.getElementById("previousWeek").disabled = state.viewedDate <= bounds.first;
+      document.getElementById("nextWeek").disabled = state.viewedDate >= bounds.last;
+    }
+
+    function changeViewedWeek(offset) {
+      const nextDate = new Date(state.viewedDate);
+      nextDate.setDate(nextDate.getDate() + offset * 7);
+      state.viewedDate = clampViewedDate(nextDate, state.groupId);
+      renderStatus();
+      renderWeekNavigation();
+      renderSchedule();
+    }
+
+    function renderGroupSelector() {
+      const container = document.getElementById("groupTabs");
+      container.replaceChildren();
+      for (const group of DATA.groups) {
+        const button = el("button", "group-tab");
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(group.id === state.groupId));
+        button.dataset.groupId = group.id;
+        button.append(el("span", "group-name", group.name));
+        button.append(el("span", "group-code", group.code));
+        button.append(el("span", "group-number", group.group));
+        button.addEventListener("click", function () {
+          state.groupId = group.id;
+          state.viewedDate = clampViewedDate(state.viewedDate, state.groupId);
+          renderAll();
+        });
+        container.append(button);
+      }
+    }
+
+    function isVisibleForWeek(lesson) {
+      const selectedWeek = getScheduleState(state.viewedDate, state.groupId).weekType;
+      if (!selectedWeek) return true;
+      return lesson.week === "both" || lesson.week === selectedWeek;
+    }
+
+    function renderLesson(lesson) {
+      const card = el("article", "lesson");
+      card.dataset.week = lesson.week;
+      const badgeClass = lesson.week === "numerator" ? "is-numerator" : lesson.week === "denominator" ? "is-denominator" : "is-both";
+      card.append(el("span", "week-badge " + badgeClass, weekLabels[lesson.week]));
+      card.append(el("h4", "lesson-title", lesson.subject || "Дисциплина не указана в PDF"));
+      const meta = el("p", "lesson-meta");
+      if (lesson.lessonType) {
+        const normalizedLessonType = lesson.lessonType.toLocaleLowerCase("ru-RU");
+        const lessonTypeClass = normalizedLessonType.includes("лекц")
+          ? "lesson-type is-lecture"
+          : normalizedLessonType.includes("семинар")
+            ? "lesson-type is-seminar"
+            : "lesson-type";
+        const lessonTypePrefix = normalizedLessonType.includes("лекц")
+          ? "🕮 "
+          : normalizedLessonType.includes("семинар")
+            ? "✎ "
+            : "";
+        meta.append(el("span", lessonTypeClass, lessonTypePrefix + lesson.lessonType));
+      }
+      if (lesson.teacher) meta.append(el("span", "lesson-teacher", "🜲 " + lesson.teacher));
+      if (lesson.room) meta.append(el("span", "lesson-room", "𖠿 ауд. " + lesson.room));
+      card.append(meta);
+      if (lesson.note) card.append(el("p", "lesson-note", lesson.note));
+      return card;
+    }
+
+    function renderDay(day, index) {
+      const date = new Date(state.viewedDate);
+      date.setDate(date.getDate() + index);
+      const scheduleStart = parseLocalDate(DATA.meta.startDate);
+      const scheduleEnd = getGroupScheduleEnd(state.groupId);
+      const isInsideSchedule = date >= scheduleStart && date <= scheduleEnd;
+      const lessons = (isInsideSchedule ? day.lessons : [])
+        .filter(function (lesson) { return lesson.groupId === state.groupId && isVisibleForWeek(lesson); })
+        .sort(function (a, b) { return a.pair - b.pair; });
+      const card = el("section", "day-card");
+      const today = atMidnight(new Date());
+      if (date.getTime() === today.getTime()) card.classList.add("is-today");
+      const rail = el("div", "day-rail");
+      rail.append(el("span", "day-short", dayShort[day.id]));
+      const dateParts = getDayDateParts(date);
+      const dateLabel = el("span", "day-date");
+      dateLabel.setAttribute("aria-label", dateParts.day + " " + dateParts.month);
+      dateLabel.append(el("strong", "", dateParts.day));
+      dateLabel.append(el("span", "", dateParts.month));
+      rail.append(dateLabel);
+      card.append(rail);
+      const body = el("div", "day-body");
+      body.append(el("h3", "day-name", day.name));
+      if (!lessons.length) {
+        body.append(el("div", "empty-day", isInsideSchedule ? "Пар нет - время отдохнуть😌" : "Расписание на этот день завершено"));
+        card.append(body);
+        return card;
+      }
+      const list = el("div", "lesson-list");
+      const byPair = new Map();
+      for (const lesson of lessons) {
+        if (!byPair.has(lesson.pair)) byPair.set(lesson.pair, []);
+        byPair.get(lesson.pair).push(lesson);
+      }
+      for (const pair of Array.from(byPair.keys()).sort(function (a, b) { return a - b; })) {
+        const pairLessons = byPair.get(pair);
+        const row = el("div", "pair-row");
+        const time = el("div", "pair-time");
+        time.append(el("strong", "", pair + " пара"));
+        time.append(document.createTextNode(pairLessons[0].time));
+        row.append(time);
+        const stack = el("div", "lesson-stack");
+        for (const lesson of pairLessons) stack.append(renderLesson(lesson));
+        row.append(stack);
+        list.append(row);
+      }
+      body.append(list);
+      card.append(body);
+      return card;
+    }
+
+    function renderSchedule() {
+      const group = DATA.groups.find(function (item) { return item.id === state.groupId; });
+      document.getElementById("selectedTitle").textContent = group.name;
+      document.getElementById("selectedGroup").textContent = group.code + " · " + group.group;
+      const container = document.getElementById("schedule");
+      container.replaceChildren();
+      DATA.days.forEach(function (day, index) { container.append(renderDay(day, index)); });
+    }
+
+    function renderAll() {
+      state.viewedDate = clampViewedDate(state.viewedDate, state.groupId);
+      renderStatus();
+      renderGroupSelector();
+      renderWeekNavigation();
+      renderSchedule();
+    }
+
+    document.getElementById("previousWeek").addEventListener("click", function () { changeViewedWeek(-1); });
+    document.getElementById("nextWeek").addEventListener("click", function () { changeViewedWeek(1); });
+    renderAll();
+  </script>
+</body>
+</html>
