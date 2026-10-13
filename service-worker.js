@@ -1,4 +1,4 @@
-const CACHE_NAME = "raspisanie-smolensk-shell-v1";
+const CACHE_NAME = "raspisanie-smolensk-shell-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
