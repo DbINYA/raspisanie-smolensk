@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Расписание</title>
+  <desc id="description">Римская цифра семь на стилизованном календаре</desc>
+  <rect width="512" height="512" fill="#173f42"/>
+  <circle cx="430" cy="82" r="118" fill="#0098af" opacity=".9"/>
+  <rect x="82" y="92" width="348" height="328" rx="72" fill="#ffffff"/>
+  <path d="M82 178h348" stroke="#cfe0df" stroke-width="24"/>
+  <path d="M166 70v74M346 70v74" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+  <text x="256" y="346" fill="#256569" font-family="Georgia, serif" font-size="170" font-weight="700" text-anchor="middle">VII</text>
+</svg>

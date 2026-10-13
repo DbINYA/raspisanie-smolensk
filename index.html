@@ -4,8 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#173f42">
+  <meta name="description" content="Неофициальное расписание 4 курса Смоленского филиала Финуниверситета.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Расписание">
   <meta name="application-version" content="1.0.0">
   <title>Расписание — 4 курс, 7 семестр</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="app-icon.svg" type="image/svg+xml">
   <style>
     :root {
       --ink: #173f42;
@@ -372,6 +379,86 @@
     .footer-contact a { color: var(--both); font-weight: 800; }
     .footer-credit { display: block; margin-top: 8px; font-size: 9px; letter-spacing: .04em; opacity: .68; }
 
+    .install-prompt {
+      position: fixed;
+      z-index: 100;
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(16px, env(safe-area-inset-bottom));
+      width: min(420px, calc(100% - 32px));
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .97);
+      box-shadow: 0 20px 60px rgba(23, 63, 66, .22);
+      backdrop-filter: blur(12px);
+      animation: install-prompt-in .28s ease-out;
+    }
+    .install-prompt[hidden] { display: none; }
+    .install-prompt-icon {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, var(--ink), var(--both));
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.05em;
+    }
+    .install-prompt-copy { min-width: 0; }
+    .install-prompt-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .install-prompt-copy strong { display: block; color: var(--ink); font-size: 15px; line-height: 1.25; }
+    .install-prompt-copy p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .install-prompt-close {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .install-prompt-actions {
+      grid-column: 2 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .install-prompt-actions button {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .install-prompt-dismiss { background: transparent; color: var(--muted); }
+    .install-prompt-action { border-color: var(--both) !important; background: var(--both); color: white; }
+    .install-prompt button:focus-visible { outline: 3px solid rgba(0, 152, 175, .32); outline-offset: 2px; }
+
+    @keyframes install-prompt-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 900px) {
       .status-grid { grid-template-columns: 1fr; }
       .group-tabs { display: flex; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
@@ -399,11 +486,18 @@
       .pair-time { display: flex; justify-content: space-between; padding: 8px 10px; }
       .pair-time strong { display: inline; }
       .lesson-meta { display: grid; gap: 4px; }
+      .install-prompt {
+        right: max(10px, env(safe-area-inset-right));
+        bottom: max(10px, env(safe-area-inset-bottom));
+        width: calc(100% - 20px);
+      }
+      .install-prompt-actions { grid-column: 1 / -1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .group-tab { transition: none; }
+      .install-prompt { animation: none; }
     }
 
     @media print {
@@ -416,6 +510,7 @@
       .week-navigation button { display: none; }
       .day-card { break-inside: avoid; box-shadow: none; }
       .group-tabs { display: none; }
+      .install-prompt { display: none; }
     }
   </style>
 </head>
@@ -467,6 +562,20 @@
       <span class="footer-credit">powered by NAmSEN · <span class="footer-version">v1.0.0</span></span>
     </footer>
   </main>
+
+  <aside class="install-prompt" id="installPrompt" role="dialog" aria-labelledby="installPromptTitle" aria-describedby="installPromptDescription" hidden>
+    <div class="install-prompt-icon" aria-hidden="true">VII</div>
+    <div class="install-prompt-copy">
+      <span class="install-prompt-label">Офлайн-копия</span>
+      <strong id="installPromptTitle">Расписание всегда под рукой</strong>
+      <p id="installPromptDescription">Установите приложение, чтобы открывать его без интернета.</p>
+    </div>
+    <button class="install-prompt-close" id="closeInstallPrompt" type="button" aria-label="Закрыть предложение установки">×</button>
+    <div class="install-prompt-actions">
+      <button class="install-prompt-dismiss" id="dismissInstallPrompt" type="button">Не сейчас</button>
+      <button class="install-prompt-action" id="installApp" type="button">Установить</button>
+    </div>
+  </aside>
 
   <script>
     const DATA = {"meta":{"title":"Расписание учебных занятий — 4 курс, 7 семестр","startDate":"2026-10-12","endDate":"2026-12-29","businessInformaticsEndDate":"2026-12-15","parityConfirmed":true,"parityAnchorDate":"2026-10-12","parityAnchorType":"numerator","paritySource":"Распределение учебных занятий по числителю и знаменателю в Смоленском филиале Финуниверситета в 2026/2027 учебном году","sourceNote":"Согласно отдельному распределению недель, 12–18 октября 2026 года — числитель; далее числитель и знаменатель чередуются каждые семь дней."},"groups":[{"id":"economics","code":"38.03.01","name":"Экономика","group":"СМПС23-1Б-ФиБДО"},{"id":"bi-01","code":"38.03.05","name":"Бизнес-информатика","group":"СМПС23-1Б-БИ01"},{"id":"bi-02","code":"38.03.05","name":"Бизнес-информатика","group":"СМПС23-1Б-БИ02"},{"id":"management","code":"38.03.02","name":"Менеджмент","group":"СМПС23-1Б-МА01"},{"id":"law","code":"40.03.01","name":"Юриспруденция","group":"СМПС23-1Б-ЗП01"}],"days":[{"id":"monday","name":"Понедельник","lessons":[{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"лекция","room":"239"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"economics","subject":"Трансфертное ценообразование в коммерческом банке","lessonType":"лекция","room":"241"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"семинар","room":"239"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Трансфертное ценообразование в коммерческом банке","lessonType":"семинар","room":"217"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","room":"226"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"bi-01","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","room":"226"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"bi-02","subject":"Бизнес-инновации и предпринимательство в сфере ИТ","lessonType":"семинар","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","room":"203"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","room":"203"}]},{"id":"tuesday","name":"Вторник","lessons":[{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","room":"206"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"семинар","room":"206"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Современные платежные системы и технологии","lessonType":"лекция","room":"45"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"economics","subject":"Банковские риски","lessonType":"семинар","room":"53"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-01","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","room":"45"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-02","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Цифровое лидерство и управление цифровой трансформацией","lessonType":"семинар","room":"45"},{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"management","subject":"Цифровой маркетинг","lessonType":"семинар","room":"203"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"management","subject":"Цифровой маркетинг","lessonType":"семинар","room":"206"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"management","subject":"Продуктовый маркетинг","lessonType":"семинар","room":"239"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"management","subject":"Нейромаркетинг","lessonType":"семинар","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"лекция","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"семинар","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","room":"203"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Право интеллектуальной собственности","lessonType":"семинар","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Жилищное право","lessonType":"лекция","room":"54"}]},{"id":"wednesday","name":"Среда","lessons":[{"pair":1,"time":"09:10–10:40","week":"both","groupId":"economics","subject":"Финансы общественного сектора","lessonType":"лекция","room":"45"},{"pair":2,"time":"11:00–12:30","week":"both","groupId":"economics","subject":"Финансы общественного сектора","lessonType":"семинар","room":"45"},{"pair":3,"time":"12:50–14:20","week":"both","groupId":"economics","subject":"Управление финансовыми активами в банке","lessonType":"семинар","room":"45"},{"pair":2,"time":"11:00–12:30","week":"both","groupId":"management","subject":"Продуктовый маркетинг","lessonType":"семинар","room":"54"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"лекция","room":"239"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Латеральный маркетинг","lessonType":"семинар","room":"203","note":"02.12"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","room":"203","note":"16.12"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":"Маркетинговые исследования","lessonType":"семинар","room":"239"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"management","subject":"Латеральный маркетинг","lessonType":"семинар","room":"239"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"management","subject":"Сенсорный маркетинг","lessonType":"семинар","room":"239","note":"21.10, 18.11"},{"pair":6,"time":"18:10–19:40","week":"denominator","groupId":"management","subject":"Сенсорный маркетинг","lessonType":"семинар","room":"239","note":"21.10"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"law","subject":"Банковское право","lessonType":"семинар","room":"54"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Жилищное право","lessonType":"семинар","room":"53"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"law","subject":"Корпоративные споры и практика их разрешения","lessonType":"проектное обучение, семинар","room":"читальный зал"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Корпоративные споры и практика их разрешения","lessonType":"проектное обучение, лекция","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"law","subject":"Арбитражные управляющие в процедурах банкротства","lessonType":"семинар","room":"читальный зал"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Арбитражные управляющие в процедурах банкротства","lessonType":"лекция","room":"203"}]},{"id":"thursday","name":"Четверг","lessons":[{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-01","subject":"Технологии продвинутой аналитики","lessonType":"семинар","room":"45"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"bi-02","subject":"Технологии продвинутой аналитики","lessonType":"семинар","room":"45"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","room":"241"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","room":"241"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"лекция","room":"203"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"лекция","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-01","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","room":"203"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-02","subject":"Автоматизация бизнес-процессов","lessonType":"семинар","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-01","subject":"Информационные технологии управления рисками","lessonType":"семинар","room":"203"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-02","subject":"Информационные технологии управления рисками","lessonType":"семинар","room":"203"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Информационные технологии управления рисками","lessonType":"семинар","room":"241"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Информационные технологии управления рисками","lessonType":"семинар","room":"241"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"management","subject":null,"lessonType":null,"room":"206","note":"В PDF указана только аудитория"},{"pair":5,"time":"16:30–18:00","week":"numerator","groupId":"management","subject":"Управление продажами","lessonType":"лекция","room":"239"},{"pair":5,"time":"16:30–18:00","week":"denominator","groupId":"management","subject":"Управление продажами","lessonType":"лекция","room":"53"},{"pair":6,"time":"18:10–19:40","week":"numerator","groupId":"management","subject":"Управление продажами","lessonType":"семинар","room":"239"},{"pair":6,"time":"18:10–19:40","week":"denominator","groupId":"management","subject":"Управление продажами","lessonType":"семинар","room":"53"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"law","subject":"Ответственность руководителя корпорации","lessonType":"лекция","room":"206"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Банковское право","lessonType":"семинар","room":"55"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"law","subject":"Ответственность руководителя корпорации","lessonType":"семинар","room":"53"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Инвестиционное право","lessonType":"семинар","room":"55"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"law","subject":"Инвестиционное право","lessonType":"семинар","room":"51"}]},{"id":"friday","name":"Пятница","lessons":[{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","room":"206"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"economics","subject":"Диджитализация, финтех и инновации в финансовых институтах","lessonType":"семинар","room":"206"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"economics","subject":"Банковские риски","lessonType":"лекция","room":"47"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"economics","subject":"Финансовые риски и банки","lessonType":"семинар","room":"47"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-01","subject":"Прикладные задачи машинного обучения","lessonType":"лекция","room":"45"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"bi-02","subject":"Прикладные задачи машинного обучения","lessonType":"лекция","room":"45"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-01","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"семинар","room":"226"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"bi-02","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"семинар","room":"226"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-01","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"лекция","room":"45"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"bi-02","subject":"Интеллектуальный анализ бизнес-процессов","lessonType":"лекция","room":"45"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-01","subject":"Прикладные задачи машинного обучения","lessonType":"семинар","room":"226"},{"pair":4,"time":"14:40–16:10","week":"denominator","groupId":"bi-02","subject":"Прикладные задачи машинного обучения","lessonType":"семинар","room":"226"},{"pair":1,"time":"09:10–10:40","week":"numerator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"лекция","room":"203"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"семинар","room":"239"},{"pair":2,"time":"11:00–12:30","week":"numerator","groupId":"management","subject":"Стратегический маркетинг","lessonType":"семинар","room":"203"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","room":"239"},{"pair":3,"time":"12:50–14:20","week":"denominator","groupId":"management","subject":"Маркетинговые коммуникации","lessonType":"семинар","room":"239"},{"pair":1,"time":"09:10–10:40","week":"denominator","groupId":"law","subject":"Жилищное право","lessonType":"семинар","room":"217"},{"pair":2,"time":"11:00–12:30","week":"denominator","groupId":"law","subject":"Конкурентное право","lessonType":"семинар","room":"217"},{"pair":3,"time":"12:50–14:20","week":"numerator","groupId":"law","subject":"Конкурентное право","lessonType":"лекция","room":"55"},{"pair":4,"time":"14:40–16:10","week":"numerator","groupId":"law","subject":"Конкурентное право","lessonType":"семинар","room":"55"}]}]};
@@ -702,6 +811,100 @@
 
     document.getElementById("previousWeek").addEventListener("click", function () { changeViewedWeek(-1); });
     document.getElementById("nextWeek").addEventListener("click", function () { changeViewedWeek(1); });
+
+    const INSTALL_DISMISS_KEY = "installPromptDismissedUntil";
+    const INSTALL_DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+    const installPromptElement = document.getElementById("installPrompt");
+    const installPromptTitle = document.getElementById("installPromptTitle");
+    const installPromptDescription = document.getElementById("installPromptDescription");
+    const installAppButton = document.getElementById("installApp");
+    let deferredInstallPrompt = null;
+    let installPromptTimer = null;
+
+    function isAppInstalled() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    function isIosDevice() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    }
+
+    function wasInstallPromptDismissed() {
+      try {
+        return Number(localStorage.getItem(INSTALL_DISMISS_KEY)) > Date.now();
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function rememberInstallPromptDismissal() {
+      try {
+        localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + INSTALL_DISMISS_MS));
+      } catch (error) {
+        // The prompt can still be hidden when browser storage is unavailable.
+      }
+    }
+
+    function hideInstallPrompt(rememberChoice) {
+      if (installPromptTimer !== null) window.clearTimeout(installPromptTimer);
+      installPromptElement.hidden = true;
+      if (rememberChoice) rememberInstallPromptDismissal();
+    }
+
+    function scheduleInstallPrompt() {
+      if (isAppInstalled() || wasInstallPromptDismissed() || installPromptTimer !== null) return;
+      installPromptTimer = window.setTimeout(function () {
+        installPromptElement.hidden = false;
+        installPromptTimer = null;
+      }, 1200);
+    }
+
+    window.addEventListener("beforeinstallprompt", function (event) {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      scheduleInstallPrompt();
+    });
+
+    if (isIosDevice() && !isAppInstalled() && !wasInstallPromptDismissed()) {
+      installPromptTitle.textContent = "Добавьте расписание на экран «Домой»";
+      installPromptDescription.textContent = "Нажмите «Поделиться», затем «На экран Домой» — расписание будет доступно без интернета.";
+      installAppButton.textContent = "Понятно";
+      installAppButton.dataset.mode = "ios";
+      scheduleInstallPrompt();
+    }
+
+    document.getElementById("closeInstallPrompt").addEventListener("click", function () {
+      hideInstallPrompt(true);
+    });
+    document.getElementById("dismissInstallPrompt").addEventListener("click", function () {
+      hideInstallPrompt(true);
+    });
+    installAppButton.addEventListener("click", async function () {
+      if (installAppButton.dataset.mode === "ios") {
+        hideInstallPrompt(true);
+        return;
+      }
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      hideInstallPrompt(false);
+    });
+    window.addEventListener("appinstalled", function () {
+      deferredInstallPrompt = null;
+      hideInstallPrompt(false);
+    });
+
+    const canRegisterServiceWorker = location.protocol === "https:"
+      || location.hostname === "localhost"
+      || location.hostname === "127.0.0.1";
+    if ("serviceWorker" in navigator && canRegisterServiceWorker) {
+      navigator.serviceWorker.register("./service-worker.js").catch(function () {
+        // The schedule remains usable online if registration is unavailable.
+      });
+    }
+
     renderAll();
   </script>
 </body>
