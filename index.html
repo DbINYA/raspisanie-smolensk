@@ -279,7 +279,7 @@
 
     .pair-progress {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 24px;
+      grid-template-columns: minmax(0, 1fr) 92px;
       align-items: center;
       gap: 8px;
       padding: 1px 2px 0;
@@ -301,6 +301,28 @@
       transition: width .35s ease;
     }
 
+    .pair-progress-status {
+      position: relative;
+      width: 92px;
+      height: 24px;
+    }
+
+    .pair-progress-remaining,
+    .pair-progress-check {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      opacity: 0;
+      transform: translateY(-50%);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .pair-progress-remaining {
+      color: var(--muted);
+      font: 700 11px/1.2 ui-monospace, Consolas, monospace;
+      white-space: nowrap;
+    }
+
     .pair-progress-check {
       display: grid;
       width: 24px;
@@ -312,13 +334,12 @@
       font-size: 15px;
       font-weight: 900;
       line-height: 1;
-      opacity: 0;
-      transform: scale(.7);
-      transition: opacity .2s ease, transform .2s ease;
+      transform: translateY(-50%) scale(.7);
     }
 
+    .pair-progress.is-active .pair-progress-remaining { opacity: 1; }
     .pair-progress.is-complete .pair-progress-fill { background: var(--seminar); }
-    .pair-progress.is-complete .pair-progress-check { opacity: 1; transform: scale(1); }
+    .pair-progress.is-complete .pair-progress-check { opacity: 1; transform: translateY(-50%) scale(1); }
 
     .sr-only {
       position: absolute;
@@ -511,7 +532,7 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .install-prompt { animation: none; }
-      .pair-progress-fill, .pair-progress-check { transition: none; }
+      .pair-progress-fill, .pair-progress-remaining, .pair-progress-check { transition: none; }
     }
 
     @media print {
@@ -701,20 +722,31 @@
       return lesson.week === "both" || lesson.week === selectedWeek;
     }
 
+    function formatRemainingTime(milliseconds) {
+      if (milliseconds < 60 * 1000) return "менее минуты";
+      const totalMinutes = Math.ceil(milliseconds / (60 * 1000));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (!hours) return minutes + " мин";
+      if (!minutes) return hours + " ч";
+      return hours + " ч " + minutes + " мин";
+    }
+
     function getPairProgress(date, time, now) {
       const match = time.match(/^(\d{2}):(\d{2})\s*[–—-]\s*(\d{2}):(\d{2})$/);
-      if (!match) return { percent: 0, state: "upcoming", label: "Время пары не распознано" };
+      if (!match) return { percent: 0, state: "upcoming", label: "Время пары не распознано", remaining: "" };
 
       const start = new Date(date);
       start.setHours(Number(match[1]), Number(match[2]), 0, 0);
       const end = new Date(date);
       end.setHours(Number(match[3]), Number(match[4]), 0, 0);
 
-      if (now >= end) return { percent: 100, state: "complete", label: "Пара завершена" };
-      if (now < start) return { percent: 0, state: "upcoming", label: "Пара ещё не началась" };
+      if (now >= end) return { percent: 100, state: "complete", label: "Пара завершена", remaining: "" };
+      if (now < start) return { percent: 0, state: "upcoming", label: "Пара ещё не началась", remaining: "" };
 
       const percent = Math.round(((now - start) / (end - start)) * 100);
-      return { percent: percent, state: "active", label: "Пара идёт: " + percent + "%" };
+      const remaining = formatRemainingTime(end - now);
+      return { percent: percent, state: "active", label: "Пара идёт, осталось " + remaining, remaining: remaining };
     }
 
     function toLocalDateValue(date) {
@@ -728,11 +760,14 @@
       const status = getPairProgress(parseLocalDate(progress.dataset.date), progress.dataset.time, now);
       const track = progress.querySelector(".pair-progress-track");
       const fill = progress.querySelector(".pair-progress-fill");
+      const remaining = progress.querySelector(".pair-progress-remaining");
       const label = progress.querySelector(".pair-progress-label");
+      progress.classList.toggle("is-active", status.state === "active");
       progress.classList.toggle("is-complete", status.state === "complete");
       track.setAttribute("aria-valuenow", String(status.percent));
       track.setAttribute("aria-valuetext", status.label);
       fill.style.width = status.percent + "%";
+      remaining.textContent = status.remaining;
       label.textContent = status.label;
     }
 
@@ -749,9 +784,11 @@
       track.append(el("span", "pair-progress-fill"));
       progress.append(track);
 
-      const check = el("span", "pair-progress-check", "✓");
-      check.setAttribute("aria-hidden", "true");
-      progress.append(check);
+      const statusSlot = el("span", "pair-progress-status");
+      statusSlot.setAttribute("aria-hidden", "true");
+      statusSlot.append(el("span", "pair-progress-remaining"));
+      statusSlot.append(el("span", "pair-progress-check", "✓"));
+      progress.append(statusSlot);
       progress.append(el("span", "pair-progress-label sr-only"));
       updatePairProgress(progress, new Date());
       return progress;
